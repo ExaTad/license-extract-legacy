@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#
+# Modified From: https://code.google.com/p/go-wiki/wiki/WindowsCrossCompiling
+#
+
+set -o nounset
+set -o errexit
+
+if [ $# -ne 2 ] ; then
+	echo "usage: $0 {GOOS} {GOARCH}" 1>&2
+	exit 1
+fi
+
+export GOOS="$1"
+export GOARCH="$2"
+
+if [ "$GOOS" = "windows" ]; then
+	export CGO_ENABLED=0
+fi
+
+cd $GOROOT/src
+go tool dist install -v pkg/runtime
+go install -v -a std

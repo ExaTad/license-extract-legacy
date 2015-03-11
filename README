@@ -1,0 +1,91 @@
+#
+# Copyright © 2015 Exablox Corporation,  All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+
+The purpose of this tool is to help facilitate open source compliance
+
+-------------------------------------
+* mknotices.sh:
+	Given the path to an archive directory and a destination
+	folder, this script takes each package in the archive and
+	runs the license extractor (see below) on it, and generates
+	a static site which includes:
+
+		* Overview notice about open source compliance
+		* A List of Packages, and for each package
+			* ability to download the package
+			* ability to browse and download the software licenses
+			* Ability to browse and download the copyright notices
+
+	Finally, it creates a compressed archive that contains
+	everything described above, suitable for making it available
+	and when posted and referred to in our documentation, helpful
+	(but not sufficient) for open source license compliance,
+	when such compliance requires us to make the code available,
+	and/or attribution in documentation.
+
+* license-extract-${VERSION}-osx:
+	Usage: license-extract-${VERSION}-osx [options] [path] ...
+
+	Version ${VERSION}. © 2014-2015 Exablox Corporation.  All Rights Reserved.
+
+	Options:
+
+	  -0=false: Pathnames read from the input file (-i) are \0 delimited (default is \n delimited)
+	  -continue=false: Continue processing, ignoring errors (default is abort on error)
+	  -i="": File to read list of files and directories from (use '-' for stdin)
+	  -ldir="": Directory to save licenses to (default = don't save) 
+	  -o="": File to write HTML formatted licensedb to (default = stdout)
+	  -quiet=false: Don't output errors (use in conjunction with '-continue')
+	  -showlic=false: show licenses found during processing
+	  -style="": Use this css stylesheet (default = embed)
+	  -verbose=false: Turn on verbose debug output (default is off)
+	  -version=false: show version and exit
+
+	Description:
+
+	  The purpose of this tool is to generate find and emit the licenses
+	  and copyright notices in a sourcetree for compliance purposes.
+	  For example, it can be used to help comply with the various open
+	  source licenses that require attribution in documentation.
+
+	  It recursively searches through the given set of files and
+	  directories, extracts copyright notices (de-duplicating against
+	  notices it has already seen), and extracts the licenses.
+
+	  At the end of the search, it outputs (-o) an HTML document which
+	  contains per file copyright notices and licenses.  If the -ldir
+	  option is given in combination with -o, it copies the licenses
+	  it finds into the specified directory, and makes the licenses
+	  viewable / downloadable via a link in the HTML document it emits.
+
+	  For directories provided on the command line, all contents will
+	  be recursively scanned.  For more complex searches (such as
+	  excluding certin file types), a list of files may also be provided
+	  via a file or stdin.  This makes it easy to build complex query
+	  pipelines with tools such as find(1).  See the '-i' and '-0'
+	  command line options for details.
