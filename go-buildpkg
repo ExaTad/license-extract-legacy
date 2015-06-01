@@ -20,5 +20,11 @@ if [ "$GOOS" = "windows" ]; then
 fi
 
 cd $GOROOT/src
-go tool dist install -v pkg/runtime
+if [ -e "pkg" ] ; then
+	rt="pkg/runtime"
+else
+	rt="runtime"
+fi
+
+go tool dist install -v "${rt}"
 go install -v -a std

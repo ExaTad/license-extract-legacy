@@ -1,5 +1,5 @@
 //
-// Copyright © 2015 Exablox Corporation,  All Rights Reserved.
+// Copyright © 2014-2015 Exablox Corporation,  All Rights Reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions
@@ -91,7 +91,7 @@ const footer =	"</body>\n"+
 func ExtraUsage() {
 	fmt.Printf("Usage: %s [options] [path] ...\n", os.Args[0])
 	fmt.Printf("\n")
-	fmt.Printf("Version %s. © 2015 Exablox Corporation.  All Rights Reserved.\n", version.Version)
+	fmt.Printf("Version %s. © 2014-2015 Exablox Corporation.  All Rights Reserved.\n", version.Version)
 	fmt.Printf("\n")
 	fmt.Printf("Options:\n")
 	fmt.Printf("\n")

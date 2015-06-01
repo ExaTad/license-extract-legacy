@@ -1,5 +1,5 @@
 #
-# Copyright © 2015 Exablox Corporation,  All Rights Reserved.
+# Copyright © 2014-2015 Exablox Corporation.  All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,8 +29,9 @@
 #
 # Change this every time you change and release the tool
 #
-VERSION	= 1.3
+VERSION	= 1.6
 PROG	= license-extract
+SCRIPTS	= extract.sh getallsrc.sh getsrc.sh mkarchive.sh mknotices.sh style.css overview-notice.html
 
 all: build install release
 
@@ -60,7 +61,7 @@ release:
 clean:
 	rm -rf src/version
 	rm -f ${PROG} ${PROG}-*-osx ${PROG}-*-win*.exe ${PROG}-*-linux* ${PROG}-*-*.zip ${PROG} regextest
-	rm -rf pkg.tmp
+	rm -f opensrc-${VERSION}.tgz
 
 nuke: clean uninstall
 
@@ -85,3 +86,16 @@ test: mkversion
 
 rtest:
 	GOPATH=$(PWD) go build regextest.go
+
+dist-linux64: all
+	rm -rf /tmp/opensrc-${VERSION}
+	mkdir /tmp/opensrc-${VERSION}
+	cp README /tmp/opensrc-${VERSION}
+	cp ${SCRIPTS} /tmp/opensrc-${VERSION}
+	cd /tmp/opensrc-${VERSION} \
+		&& sed "s/EXTRACTVERSION/${VERSION}/g" < mknotices.sh > mknotices.sh.x \
+		&& mv mknotices.sh.x mknotices.sh \
+		&& chmod 755 mknotices.sh
+	cp ${PROG}-${VERSION}-linux64 /tmp/opensrc-${VERSION}
+	cd /tmp && tar cvfz opensrc-${VERSION}.tgz opensrc-${VERSION}
+	mv /tmp/opensrc-${VERSION}.tgz .

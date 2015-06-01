@@ -30,6 +30,8 @@
 set -o nounset
 set -o errexit
 
+bindir="$(cd $(dirname "$0"); pwd)"
+
 if [ $# -ne 2 ] ; then
 	echo "usage: $0 <path to Packages directory> <outdir>"
 	exit 1
@@ -52,7 +54,7 @@ fi
 
 aoutdir=$(cd $outdir && pwd)
 
-cp style.css ${aoutdir}
+cp ${bindir}/style.css ${aoutdir}
 
 cat > ${aoutdir}/index.html << EOF
 <!DOCTYPE html>
@@ -65,7 +67,7 @@ cat > ${aoutdir}/index.html << EOF
 <div class="overview">
 EOF
 
-cat overview-notice.html >> ${aoutdir}/index.html
+cat ${bindir}/overview-notice.html >> ${aoutdir}/index.html
 
 cat >> ${aoutdir}/index.html << EOF
 </div>
@@ -79,6 +81,16 @@ cat >> ${aoutdir}/index.html << EOF
 		<td><h3>Source Code</h3></td>
 	</tr>
 EOF
+
+case $(uname) in 
+Darwin)
+	host=osx
+	;;
+Linux)
+	host=linux64
+	;;
+esac
+
 
 #
 # Pick a verbosity level
@@ -97,15 +109,15 @@ for pkgpath in $(find ${dir} -type f -print) ; do
 
 	cd pkg.tmp
 	echo "[mknotices] Extracting ${pkg}" 1>&2
-	tar xfj "${pkgpath}"
+	tar xfz "${pkgpath}"
 
 
 	echo "[mknotices] Generating Notices for ${pkg}" 1>&2
 
-	pkgdir="$(basename $(find . -type d -depth 1 -print))"
+	pkgdir="$(ls -l | grep '^d' | awk '{print $NF}' | head -1)"
 	mkdir -p "${aoutdir}/${pkgdir}"
 	cd ${pkgdir}
-	license-extract-1.2-osx \
+	license-extract-EXTRACTVERSION-$host \
 		-style ../style.css \
 		-ldir "${aoutdir}/${pkgdir}" \
 		-verbose=${verbose} \
@@ -128,7 +140,8 @@ done
 
 cat >> "${aoutdir}/index.html" << EOF
 </table>
-</div> <!-- end "page" -->
+</div> <!-- end "package-list" -->
+<p><i>Created with opensrc toolchain release EXTRACTVERSION</i></p>
 </body>
 </html>
 EOF
