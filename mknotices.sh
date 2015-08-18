@@ -152,3 +152,4 @@ cd "${aoutdir}/.."
 echo "[mknotices] Creating Archive $(pwd)/${name}.tgz" 1>&2
 rm -f ${name}.tgz
 tar cvfz ${name}.tgz ${name}
+
