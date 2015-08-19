@@ -27,7 +27,6 @@
 #
 
 The purpose of these scripts is to help facilitate open source compliance
-
 -------------------------------------
 
 Brief description of the tools:
@@ -99,7 +98,7 @@ Example Usage:
 	-0=false: Pathnames read from the input file (-i) are \0 delimited (default is \n delimited)
 	-continue=false: Continue processing, ignoring errors (default is abort on error)
 	-i="": File to read list of files and directories from (use '-' for stdin)
-	-ldir="": Directory to save licenses to (default = don't save) 
+	-ldir="": Directory to save licenses to (default = don't save)
 	-o="": File to write HTML formatted licensedb to (default = stdout)
 	-quiet=false: Don't output errors (use in conjunction with '-continue')
 	-showlic=false: show licenses found during processing
