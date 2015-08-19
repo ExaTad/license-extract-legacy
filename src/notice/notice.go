@@ -26,75 +26,56 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 
-/*
-  This implementation is fraught-with-peril, as it's relying on a
-  bunch of regular expressions and heuristics to come up with the
-  actual copyright notice text from the given file.
-
-  The set of regular expressions is *fragile*, and they are experimentally
-  generated from a set of open source packages which may or may not
-  be representative of the breadth of possible notices.
-
-  A more robust solution would probably revolve around "text similarity"
-  measures, such as Cosine and Levenshtein Distance.  Wikipedia provides
-  a good starting point for surveying the possibilities:
-	http://en.wikipedia.org/wiki/String_metric
-*/
-
-
 package notice
 
-import(
+import (
 	"crypto/sha1"
-	"regexp"
-	"fmt"
-	"log"
-	"io/ioutil"
 	"filemagic"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"regexp"
+	"tagger"
 )
 
-const(
-	SRC	= iota
+const (
+	SRC = iota
 	BIN
 	UNK
 	ERR
 )
 
 type Notice struct {
-	Sha1		[sha1.Size]byte		// Unique identifier for this Notice
-	Type		int			// Best guess as to the type of object this notice applies to
-	Text		[]byte			// The Notice text itself
+	Sha1 [sha1.Size]byte // Unique identifier for this Notice
+	Type int             // Best guess as to the type of object this notice applies to
+	Text []byte          // The Notice text itself
 
 	//
 	// XXX - Tad: Interface Violation: These are LicenseDB specific things, not Notice specific things
 	//
-	Count		int
-	Files		[]string
-	Next		*Notice			// next in the database bucket
+	Count int
+	Files []string
+	Next  *Notice // next in the database bucket
 }
 
-//
-// Find lines which are likely to represent a copyright notice
-//
-var rcopyright	= regexp.MustCompile(
-		"([ \t]*[Cc][Oo][Pp][Yy][Rr][Ii][Gg][Hh][Tt][^\r\n]*[0-9]+[^\r\n]*[\r\n])|" +	// 'Copyright WORDS YEAR' where WORDS may be empty
-		"([ \t]*[Cc][Oo][Pp][Yy][Rr][Ii][Gg][Hh][Tt]:[^\r\n]*[0-9]+[^\r\n]*[\r\n])|" +	// 'Copyright: WORDS YEAR' where WORDS may be empty
-		"([ \t]*\\([Cc]\\)[ \t]+[^\r\n]*[0-9]{4}[^\r\n]*[\r\n])|" +			// '(C) WS WORDS YEAR' where WORDS may be empty
-		"([ \t]*\\([Cc]\\)[0-9]{4}[^\r\n]*[^\r\n]*[\r\n])|" +				// '(C) YEAR WORDS' where WORDS may be empty
-		"([ \t]+©[^\r\n]*[0-9]{4}[^\r\n]*[\r\n])")					// '© WORDS YEAR' where WORDS may be empty
+// Define the different comment styles as strings
+const cStyle string = "(/\\*([^*]|(\\*+([^*/])))*\\*+/)|(([ \\t]*//[^\r\n]*[\r\n])+)"
+const htmlStyle string = "(<!--([^-]|(-*([^->])|->))*-+->)"
+const pythonStyle string = "(([ \\t]*#[^\r\n]*[\r\n])+)|(\"\"\"([^\"]|(\"[^\"]|\"\"[^\"]))*\"\"+\")"
+const shellStyle string = "(([ \\t]*#[^\r\n]*[\r\n])+)"
+const m4Style string = "(([ \\t]*#[^\r\n]*[\r\n])+)|(([ \\t]*dnl[^\r\n]*[\r\n])+)"
+const pascalStyle string = "(([ \\t]*//[^\r\n]*[\r\n])+)"
+const preproccessStyle string = "(([ \\t]*\\.\\\\\"[^\r\n]*[\r\n])+)|(([ \\t]*\\#[^\r\n]*[\r\n])+)|(([ \\t]*\\\"[^\r\n]*[\r\n])+)"
 
 //
 // This regex originated with the "Solution" @  http://blog.ostermiller.org/find-comment
 // and has been tweaked and extended.
 //
-var rcomment	= regexp.MustCompile(
-			"(/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/)|" +			// C Style
-			"(([ \\t]*\\.\\\\\"[^\\r\\n]*[\\r\\n])+)|" +				// Troff Style
-			"(([ \\t]*//[^\\r\\n]*[\\r\\n])+)|" +					// C++ Style
-			"(([ \\t]*#[^\\r\\n]*[\\r\\n])+)|" +					// Shell Style
-			"(((dnl[ \\t][^\\r\\n]*[\\r\\n])|(dnl[\\r\\n]))+)")			// Autoconf Style
+var rcomment = regexp.MustCompile(cStyle + "|" + htmlStyle + "|" + pythonStyle + "|" +
+	shellStyle + "|" + m4Style + "|" + pascalStyle + "|" +
+	preproccessStyle)
 
-const	noNotice = "No copyright notice found"
+const noNotice = "No copyright notice found"
 
 func mkNotice(path string, ltype int, ltext []byte, showNotice bool) (*Notice, error) {
 	if ltext == nil {
@@ -102,9 +83,9 @@ func mkNotice(path string, ltype int, ltext []byte, showNotice bool) (*Notice, e
 	}
 
 	notice := &Notice{
-		Text:	ltext,
-		Type:	ltype,
-		Sha1:	sha1.Sum(ltext),
+		Text: ltext,
+		Type: ltype,
+		Sha1: sha1.Sum(ltext),
 	}
 
 	if showNotice {
@@ -114,13 +95,12 @@ func mkNotice(path string, ltype int, ltext []byte, showNotice bool) (*Notice, e
 	return notice, nil
 }
 
-
-func extractCopyrightNotices(path string, raw []byte, verbose bool, showNotice bool) ([]byte, error) {
+func extractCopyrightNotices(path string, raw []byte, verbose bool, showNotice bool, copyrightTagger *tagger.Tagger) ([]byte, error) {
 	if showNotice {
 		log.Printf("[LIC %s]: found copyright outside of comments\n", path)
 	}
 
-	cindex := rcopyright.FindAllIndex(raw, -1)
+	cindex := copyrightTagger.FindAllIndex(raw)
 	if cindex == nil {
 		return nil, fmt.Errorf("%s: matched a copyright but couldn't find it", path)
 	}
@@ -143,6 +123,7 @@ func extractCopyrightNotices(path string, raw []byte, verbose bool, showNotice b
 
 func skipFile(path string) (*filemagic.Magic, int, error) {
 	magic, err := filemagic.New(path)
+
 	if err != nil {
 		return nil, ERR, err
 	}
@@ -175,7 +156,8 @@ func skipFile(path string) (*filemagic.Magic, int, error) {
 // 5. As a last resort, if a copyright notice was found, and comments were found, but the copyright
 //    notice wasn't found in a comment, just include the copyright notice.
 //
-func NewNoticeFromFile(path string, verbose bool, showNotice bool) (*Notice, error) {
+func NewNoticeFromFile(path string, verbose bool, showNotice bool, copyrightTagger *tagger.Tagger) (*Notice, error) {
+
 	if verbose {
 		log.Printf("[LIC] Process %s\n", path)
 	}
@@ -193,7 +175,8 @@ func NewNoticeFromFile(path string, verbose bool, showNotice bool) (*Notice, err
 		return nil, err
 	}
 
-	if !rcopyright.Match(raw) {
+	// Check to see if any copyright notice exists in this file within or not inside of comments
+	if !copyrightTagger.Match(raw) {
 		if showNotice {
 			log.Printf("[LIC %s] %s\n", path, noNotice)
 		}
@@ -204,7 +187,7 @@ func NewNoticeFromFile(path string, verbose bool, showNotice bool) (*Notice, err
 	var ltext []byte
 
 	if cindex == nil {
-		ltext, err = extractCopyrightNotices(path, raw, verbose, showNotice)
+		ltext, err = extractCopyrightNotices(path, raw, verbose, showNotice, copyrightTagger)
 		if err != nil {
 			return nil, err
 		}
@@ -215,7 +198,8 @@ func NewNoticeFromFile(path string, verbose bool, showNotice bool) (*Notice, err
 		start := cindex[i][0]
 		end := cindex[i][1]
 
-		if !rcopyright.Match(raw[start:end]) {
+		// If the comment does contain something I want I take it if not I skip and go back to the top
+		if !copyrightTagger.Match(raw[start:end]) {
 			continue
 		}
 
@@ -228,7 +212,7 @@ func NewNoticeFromFile(path string, verbose bool, showNotice bool) (*Notice, err
 	}
 
 	if ltext == nil {
-		ltext, err = extractCopyrightNotices(path, raw, verbose, showNotice)
+		ltext, err = extractCopyrightNotices(path, raw, verbose, showNotice, copyrightTagger)
 		if err != nil {
 			return nil, err
 		}
