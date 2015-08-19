@@ -59,8 +59,8 @@ var quiet bool
 var periodic bool
 var copyrightTagger *tagger.Tagger
 var wg sync.WaitGroup
-var licenseChan = make(chan WorkerNotice, runtime.NumCPU())
-var workerChan = make(chan bool, runtime.NumCPU())
+var licenseChan = make(chan WorkerNotice, runtime.GOMAXPROCS(-1))
+var workerChan = make(chan bool, runtime.GOMAXPROCS(-1))
 var doneChan = make(chan bool)
 
 const headHead = "<!DOCTYPE html>\n" +

@@ -108,6 +108,7 @@ esac
 verbose=false
 #
 n=1
+export GOMAXPROCS=$(nproc)
 for pkgpath in $(ls ${dir}/*) ; do
 	pkg="$(basename ${pkgpath})"
 
@@ -126,7 +127,6 @@ for pkgpath in $(ls ${dir}/*) ; do
 	pkgdir="$(ls -l | grep '^d' | awk '{print $NF}' | head -1)"
 	mkdir -p "${aoutdir}/${pkgdir}"
 	cd ${pkgdir}
-	export GOMAXPROCS=$(nproc)
 	license-extract-EXTRACTVERSION-$host-$arch \
 		-corpus ${bindir}/CopyrightCorpus.in \
 		-style ../style.css \

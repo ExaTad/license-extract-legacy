@@ -43,7 +43,7 @@ if [ -d Debian ]; then
 	for pkg in $(ls -l | grep '^d' | awk '{print $NF}') ; do
 		tar cvfz ../../Archive/$pkg.tgz $pkg
 	done
-	cd ../
+	cd ..
 fi
 
 # move and compress the Ruby gem directories to the Archive folder as .tgz
@@ -53,7 +53,7 @@ if [ -d Ruby ]; then
 	for pkg in $(ls); do
 		tar cvfz ../../Archive/$pkg.tgz $pkg
 	done
-	cd ../
+	cd ..
 fi
 
 # move the Python first uncompressing everything then recompressing it to a unified format
@@ -70,7 +70,7 @@ if [ -d Python ]; then
 		pip install -t $dirName $compName
 		mv $dirName ../
 	done
-	cd ../
+	cd ..
 	rm -rf wheel/
 
 	# handle the compressed
