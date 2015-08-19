@@ -27,10 +27,10 @@
 //
 package fileutils
 
-import(
-	"path/filepath"
-	"os"
+import (
 	"log"
+	"os"
+	"path/filepath"
 )
 
 //
@@ -61,8 +61,8 @@ func fileCheck(path string, info os.FileInfo, err error, verbose bool) error {
 
 func PathCheck(path string, verbose bool) error {
 	return filepath.Walk(
-			path,
-			func(path string, info os.FileInfo, err error) error {
-				return fileCheck(path, info, err, verbose)
-			})
+		path,
+		func(path string, info os.FileInfo, err error) error {
+			return fileCheck(path, info, err, verbose)
+		})
 }

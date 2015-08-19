@@ -33,14 +33,14 @@ import (
 	"regexp"
 )
 
-var rcopyright	= regexp.MustCompile("[ \t\r\n]+[Cc][Oo][Pp][Yy][Rr][Ii][Gg][Hh][Tt][ \t\r\n]+")
+var rcopyright = regexp.MustCompile("[ \t\r\n]+[Cc][Oo][Pp][Yy][Rr][Ii][Gg][Hh][Tt][ \t\r\n]+")
 
-var rcomment	= regexp.MustCompile(
-			"(/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/)|" +			// C Style
-			"(([ \\t]*\\.\\\\\"[^\\r\\n]*[\\r\\n])+)|" +				// Troff Style
-			"(([ \\t]*//[^\\r\\n]*[\\r\\n])+)|" +					// C++ Style
-			"(([ \\t]*#[^\\r\\n]*[\\r\\n])+)|" +					// Shell Style
-			"(((dnl[ \\t][^\\r\\n]*[\\r\\n])|(dnl[\\r\\n]))+)")			// Autoconf Style
+var rcomment = regexp.MustCompile(
+	"(/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/)|" + // C Style
+		"(([ \\t]*\\.\\\\\"[^\\r\\n]*[\\r\\n])+)|" + // Troff Style
+		"(([ \\t]*//[^\\r\\n]*[\\r\\n])+)|" + // C++ Style
+		"(([ \\t]*#[^\\r\\n]*[\\r\\n])+)|" + // Shell Style
+		"(((dnl[ \\t][^\\r\\n]*[\\r\\n])|(dnl[\\r\\n]))+)") // Autoconf Style
 
 func main() {
 	raw := []byte(`
