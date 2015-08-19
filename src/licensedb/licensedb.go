@@ -29,25 +29,29 @@ package licensedb
 
 import (
 	"bufio"
-	"path"
-	"os"
 	"bytes"
 	"fmt"
 	"html"
 	"io"
 	"log"
 	"notice"
+	"os"
+	"path"
 	"regexp"
+	"sort"
 	"time"
 )
+
+type NoticeSlice []*notice.Notice
 
 type LicenseDB struct {
 	//
 	// Content
 	//
-	Notices    []*notice.Notice // The license / copyright notices extracted from the files
-	Licenses   map[string]int   // pathnames of files containing licenses
-	LicenseDir string           // Directory to save license files into
+	Notices       []*notice.Notice // The license / copyright notices extracted from the files
+	SortedNotices NoticeSlice      // sorted list of notices
+	Licenses      map[string]int   // pathnames of files containing licenses
+	LicenseDir    string           // Directory to save license files into
 
 	//
 	// Statistics
@@ -66,30 +70,31 @@ type LicenseDB struct {
 // like COPYING.GPL, etc
 //
 var rlicense = regexp.MustCompile(
-	"(AUTHORS)|"+
-	"(Artistic)|"+
-	"(BSD)|"+
-	"(CHANGES)|"+
-	"(COPYING)|"+
-	"(COPYING-CMAKE-SCRIPTS)|"+
-	"(COPYING3)|"+
-	"(COPYRIGHT)|"+
-	"(Copying)|"+
-	"(Copyright)|"+
-	"(IMPORTING)|"+
-	"(LIBGCJ_LICENSE)|"+
-	"(LICENSE)|"+
-	"(LICENSES)|"+
-	"(LICENSE_BSD)|"+
-	"(LICENSE_LGPL)|"+
-	"(LICENSE_MIT)|"+
-	"(License)|"+
-	"(NOTICE)|"+
-	"(PATENTS)|"+
-	"(rcache/RELEASE)|"+
-	"(THANKS)|"+
-	"(copyright)|"+
-	"(copyrights)")
+	"(AUTHORS)|" +
+		"(Artistic)|" +
+		"(BSD)|" +
+		"([Gg][Pp][Ll])|" +
+		"(CHANGES)|" +
+		"(COPYING)|" +
+		"(COPYING-CMAKE-SCRIPTS)|" +
+		"(COPYING3)|" +
+		"(COPYRIGHT)|" +
+		"(Copying)|" +
+		"(Copyright)|" +
+		"(IMPORTING)|" +
+		"(LIBGCJ_LICENSE)|" +
+		"([Ll][Ii][Cc][Ee][Nn][Ss][Ee])|" +
+		"(LICENSES)|" +
+		"(LICENSE_BSD)|" +
+		"(LICENSE_LGPL)|" +
+		"(LICENSE_MIT)|" +
+		"(License)|" +
+		"(NOTICE)|" +
+		"(PATENTS)|" +
+		"(rcache/RELEASE)|" +
+		"(THANKS)|" +
+		"(copyright)|" +
+		"(copyrights)")
 
 func NewLicenseDB(licensedir string, nbuckets int, indexOffset int) *LicenseDB {
 	ldb := &LicenseDB{
@@ -298,14 +303,14 @@ func (ldb *LicenseDB) CopyLicense(src string) error {
 }
 
 func (ldb *LicenseDB) SaveLicenses(outb *bufio.Writer, verbose bool) error {
-	const start =	"<div class=\"licenses\"> <!-- start licenses -->\n"+
-			"	<div class=\"license-paths\"> <!-- start license paths -->\n"+
-			"		<h2>Licenses</h2>\n"+
-			"		<table>\n"
+	const start = "<div class=\"licenses\"> <!-- start licenses -->\n" +
+		"	<div class=\"license-paths\"> <!-- start license paths -->\n" +
+		"		<h2>Licenses</h2>\n" +
+		"		<table>\n"
 
-	const end =	"		</table>\n"+
-			"	</div> <!-- end license paths -->\n"+
-			"</div> <!-- end licenses -->\n"
+	const end = "		</table>\n" +
+		"	</div> <!-- end license paths -->\n" +
+		"</div> <!-- end licenses -->\n"
 
 	_, err := outb.WriteString(start)
 	if err != nil {
@@ -340,10 +345,10 @@ func (ldb *LicenseDB) SaveLicenses(outb *bufio.Writer, verbose bool) error {
 }
 
 func (ldb *LicenseDB) SaveNotices(outb *bufio.Writer, verbose bool) error {
-	const start =	"<div class=\"notices\"> <!-- start notices -->\n"+
-			"	<h2>Notices</h2>\n"
+	const start = "<div class=\"notices\"> <!-- start notices -->\n" +
+		"	<h2>Notices</h2>\n"
 
-	const end =	"</div> <!-- end notices -->\n"
+	const end = "</div> <!-- end notices -->\n"
 
 	_, err := outb.WriteString(start)
 	if err != nil {
@@ -382,6 +387,77 @@ func (ldb *LicenseDB) Save(outb *bufio.Writer, verbose bool) error {
 	}
 
 	err = ldb.SaveNotices(outb, verbose)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (slice NoticeSlice) Len() int {
+	return len(slice)
+}
+
+func (slice NoticeSlice) Less(i, j int) bool {
+	return slice[i].Files[0] < slice[j].Files[0]
+}
+
+func (slice NoticeSlice) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
+func (ldb *LicenseDB) SaveSortedNotices(outb *bufio.Writer, verbose bool) error {
+	// sort
+	for i := 0; i < len(ldb.Notices); i++ {
+		for n := ldb.Notices[i]; n != nil; n = n.Next {
+			sort.Strings(n.Files) // sort the files of each notice
+			ldb.SortedNotices = append(ldb.SortedNotices, n)
+		}
+	}
+	sort.Sort(ldb.SortedNotices)
+
+	// Now that there is a sorted list iterate through and output to outb
+	const start = "<div class=\"notices\"> <!-- start notices -->\n" +
+		"	<h2>Notices</h2>\n"
+
+	const end = "</div> <!-- end notices -->\n"
+
+	_, err := outb.WriteString(start)
+	if err != nil {
+		return err
+	}
+
+	dosep := false
+	for _, n := range ldb.SortedNotices {
+		if dosep {
+			_, err = fmt.Fprintf(outb, "<hr>\n")
+			if err != nil {
+				return err
+			}
+		}
+		err = writeNotice(outb, n, verbose)
+		if err != nil {
+			return err
+		}
+		dosep = true
+	}
+
+	_, err = outb.WriteString(end)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (ldb *LicenseDB) SortedSave(outb *bufio.Writer, verbose bool) error {
+	err := ldb.SaveLicenses(outb, verbose)
+	if err != nil {
+		return err
+	}
+
+	err = ldb.SaveSortedNotices(outb, verbose)
 	if err != nil {
 		return err
 	}
