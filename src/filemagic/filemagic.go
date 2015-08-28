@@ -27,44 +27,47 @@
 //
 package filemagic
 
-import(
-	"os/exec"
-	"strings"
-	"regexp"
+import (
 	"log"
+	"os/exec"
+	"regexp"
+	"strings"
 )
 
-var rbinary	= regexp.MustCompile(
-			"(^data$)|"+
-			"(binary)|"+
-			"(PDF)|"+
-			"((([Ll][Ii][Tt][Tt][Ll][Ee])|([Bb][Ii][Gg]))[ -]*[Ee][Nn][Dd][Ii][Aa][Nn])|"+
-			"(TrueType)|"+
-			"(TIFF image)|"+
-			"(GIF image)|"+
-			"(PostScript document)|"+
-			"(ELF 32-bit)|"+
-			"(ELF 64-bit)|"+
-			"(Mach-O)|"+
-			"(PE.*executable)|"+
-			"(compiled Java)|"+
-			"(Vim swap)|"+
-			"(80386 COFF executable)|"+
-			"(Berkeley DB)|"+
-			"(ACB archive data)|"+
-			"(Big-endian)|"+
-			"(CDF V2 Document)")
+var rbinary = regexp.MustCompile(
+	"(^data$)|" +
+		"(binary)|" +
+		"(PDF)|" +
+		"((([Ll][Ii][Tt][Tt][Ll][Ee])|([Bb][Ii][Gg]))[ -]*[Ee][Nn][Dd][Ii][Aa][Nn])|" +
+		"(TrueType)|" +
+		"(TIFF image)|" +
+		"(GIF image)|" +
+		"(PostScript document)|" +
+		"(ELF 32-bit)|" +
+		"(ELF 64-bit)|" +
+		"(Mach-O)|" +
+		"(PE.*executable)|" +
+		"(compiled Java)|" +
+		"(Vim swap)|" +
+		"(80386 COFF executable)|" +
+		"(Berkeley DB)|" +
+		"(ACB archive data)|" +
+		"(Big-endian)|" +
+		"(CDF V2 Document)|" +
+		"([Gg][Ii][Tt] [Pp][Aa][Cc][Kk])|" +
+		"(zlib)|" +
+		"(lif)")
 
-var runk	= regexp.MustCompile(
-			"(unknown)|"+
-			"(none)")
+var runk = regexp.MustCompile(
+	"(unknown)|" +
+		"(none)")
 
-var rcompressed	= regexp.MustCompile(
-			"(compressed)|"+
-			"(archive)")
+var rcompressed = regexp.MustCompile(
+	"(compressed)|" +
+		"(archive)")
 
 type Magic struct {
-	Magic	[]byte
+	Magic []byte
 }
 
 func (m *Magic) String() string {
