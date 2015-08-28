@@ -88,6 +88,7 @@ Darwin)
 	;;
 Linux)
 	host=linux
+	export GOMAXPROCS=$(nproc)
 	;;
 esac
 
@@ -108,7 +109,6 @@ esac
 verbose=false
 #
 n=1
-export GOMAXPROCS=$(nproc)
 for pkgpath in $(ls ${dir}/*) ; do
 	pkg="$(basename ${pkgpath})"
 
