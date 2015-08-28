@@ -87,7 +87,16 @@ Darwin)
 	host=osx
 	;;
 Linux)
-	host=linux64
+	host=linux
+	;;
+esac
+
+case $(uname -m) in
+x86_64)
+	arch=amd64
+	;;
+*)
+	arch=386
 	;;
 esac
 
@@ -99,7 +108,8 @@ esac
 verbose=false
 #
 n=1
-for pkgpath in $(find ${dir} -type f -print) ; do
+export GOMAXPROCS=$(nproc)
+for pkgpath in $(ls ${dir}/*) ; do
 	pkg="$(basename ${pkgpath})"
 
 	echo "[mknotices] Creating Notices for ${pkg}" 1>&2
@@ -117,7 +127,8 @@ for pkgpath in $(find ${dir} -type f -print) ; do
 	pkgdir="$(ls -l | grep '^d' | awk '{print $NF}' | head -1)"
 	mkdir -p "${aoutdir}/${pkgdir}"
 	cd ${pkgdir}
-	license-extract-EXTRACTVERSION-$host \
+	license-extract-EXTRACTVERSION-$host-$arch \
+		-corpus ${bindir}/CopyrightCorpus.in \
 		-style ../style.css \
 		-ldir "${aoutdir}/${pkgdir}" \
 		-verbose=${verbose} \
