@@ -27,9 +27,9 @@
 //
 package strutils
 
-import(
-	"strings"
+import (
 	"bytes"
+	"strings"
 )
 
 //
@@ -139,4 +139,3 @@ func ScanZeros(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	// Request more data.
 	return 0, nil, nil
 }
-
