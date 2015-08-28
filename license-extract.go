@@ -249,12 +249,8 @@ func FileParse(path string, info os.FileInfo) *notice.Notice {
 
 // walks all files sending the path to sendWork
 func ProcessFile(path string) error {
-	setupWorkers()
 
 	err := filepath.Walk(path, sendWork)
-	close(workerChan) //done sending work
-
-	shutdownWorkers()
 	return err
 }
 
@@ -328,12 +324,15 @@ func main() {
 
 	ldb = licensedb.NewLicenseDB(licenseDir, LicenseDBNumBuckets, 0)
 
+	setupWorkers()
 	for _, path := range flag.Args() {
 		err = ProcessFile(path)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+	close(workerChan) //done sending work
+	shutdownWorkers()
 
 	if inPath != "" {
 		var infile *os.File
@@ -353,12 +352,15 @@ func main() {
 			scanner.Split(strutils.ScanZeros)
 		}
 
+		setupWorkers()
 		for scanner.Scan() {
 			err = ProcessFile(scanner.Text())
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
+		close(workerChan) //done sending work
+		shutdownWorkers()
 
 		err = scanner.Err()
 		if err != nil {
