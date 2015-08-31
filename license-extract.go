@@ -200,6 +200,7 @@ func noticeHandler(noticeChan chan NoticeMsg, doneChan chan bool) {
 // Gathers all the workers ensuring all work is done and all go routines have stopped before allowing
 // the program to continue
 func shutdownWorkers() {
+	close(workerChan) //done sending work
 	var numWorkers int = runtime.GOMAXPROCS(-1)
 	for i := 0; i < numWorkers; i++ {
 		<-doneChan
@@ -249,12 +250,8 @@ func FileParse(path string, info os.FileInfo) *notice.Notice {
 
 // walks all files sending the path to sendWork
 func ProcessFile(path string) error {
-	setupWorkers()
 
 	err := filepath.Walk(path, sendWork)
-	close(workerChan) //done sending work
-
-	shutdownWorkers()
 	return err
 }
 
@@ -328,6 +325,7 @@ func main() {
 
 	ldb = licensedb.NewLicenseDB(licenseDir, LicenseDBNumBuckets, 0)
 
+	setupWorkers()
 	for _, path := range flag.Args() {
 		err = ProcessFile(path)
 		if err != nil {
@@ -366,6 +364,7 @@ func main() {
 		}
 		infile.Close()
 	}
+	shutdownWorkers()
 
 	outfile := os.Stdout
 	if outPath != "" {
