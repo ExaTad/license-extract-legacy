@@ -49,7 +49,7 @@ the max likelyhood to the given word.
 | Tag | Description           | Examples                |
 |-----|-----------------------|-------------------------|
 |  $  |    the dollar sign    |            $            |
-|  "  |     quotation mark    |         ", ', \`         |
+|  "  |     quotation mark    |         ", ', `         |
 |  (  |    open parenthesis   |        (, <, {, [       |
 |  )  |   close parenthesis   |        ), >, }, ]       |
 |  ,  |         comma         |            ,            |
