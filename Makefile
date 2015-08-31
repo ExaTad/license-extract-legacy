@@ -112,6 +112,6 @@ deps: ${PKGDEPS}
 
 Tagger_Dir = src/tagger
 Tagger_URL = https://github.com/EKnapik/goTagger.git
-Tagger_Commit = 9e317e0815bdaf17d2a9f93ee6e380c10c1aa8d8 
+Tagger_Commit = b7372c910276795a8a47950e7981c4fc77e1479e 
 Tagger:
 	./mk-remote-git.sh ${${@}_URL} ${${@}_Commit} ${${@}_Dir}
