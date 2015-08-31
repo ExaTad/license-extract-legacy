@@ -200,6 +200,7 @@ func noticeHandler(noticeChan chan NoticeMsg, doneChan chan bool) {
 // Gathers all the workers ensuring all work is done and all go routines have stopped before allowing
 // the program to continue
 func shutdownWorkers() {
+	close(workerChan) //done sending work
 	var numWorkers int = runtime.GOMAXPROCS(-1)
 	for i := 0; i < numWorkers; i++ {
 		<-doneChan
@@ -331,8 +332,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	close(workerChan) //done sending work
-	shutdownWorkers()
 
 	if inPath != "" {
 		var infile *os.File
@@ -352,15 +351,12 @@ func main() {
 			scanner.Split(strutils.ScanZeros)
 		}
 
-		setupWorkers()
 		for scanner.Scan() {
 			err = ProcessFile(scanner.Text())
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
-		close(workerChan) //done sending work
-		shutdownWorkers()
 
 		err = scanner.Err()
 		if err != nil {
@@ -368,6 +364,7 @@ func main() {
 		}
 		infile.Close()
 	}
+	shutdownWorkers()
 
 	outfile := os.Stdout
 	if outPath != "" {
