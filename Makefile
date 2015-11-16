@@ -29,7 +29,7 @@
 #
 # Change this every time you change and release the tool
 #
-VERSION	= 2.0
+VERSION	= 2.0.2
 PROG	= license-extract
 SCRIPTS	= extract.sh getallsrc.sh getsrc.sh mkarchive.sh mknotices.sh style.css overview-notice.html
 PKGDEPS = Tagger
@@ -92,6 +92,8 @@ test: mkversion
 rtest:
 	GOPATH=$(PWD) go build regextest.go
 
+dist: dist-linux-amd64
+
 dist-linux-amd64: all
 	rm -rf /tmp/opensrc-${VERSION}
 	mkdir /tmp/opensrc-${VERSION}
@@ -106,12 +108,10 @@ dist-linux-amd64: all
 	cd /tmp && tar cvfz opensrc-${VERSION}-linux-amd64.tgz opensrc-${VERSION}
 	mv /tmp/opensrc-${VERSION}-linux-amd64.tgz .
 
-
-
 deps: ${PKGDEPS}
 
 Tagger_Dir = src/tagger
 Tagger_URL = https://github.com/EKnapik/goTagger.git
-Tagger_Commit = b7372c910276795a8a47950e7981c4fc77e1479e 
+Tagger_Commit = 95bc20f6cfe2ba3ff45112f4b9a808072a0b58ac
 Tagger:
 	./mk-remote-git.sh ${${@}_URL} ${${@}_Commit} ${${@}_Dir}
